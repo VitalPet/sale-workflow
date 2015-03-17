@@ -48,8 +48,8 @@ class account_invoice(osv.osv):
                     [
                         line.price_subtotal
                         for line in invoice.invoice_line
-                        if line.product_id
-                        and line.product_id.special_type == special_type
+                        if line.product_id and
+                        line.product_id.special_type == special_type
                     ], 0.0)
         return res
 
@@ -74,11 +74,11 @@ class account_invoice(osv.osv):
             store={
                 'account.invoice': (
                     lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20
-                    ),
+                ),
                 'account.invoice.line': (_get_invoice_line, [
                     'price_unit', 'invoice_line_tax_id', 'quantity',
                     'discount', 'invoice_id', 'product_id'
-                    ], 20),
+                ], 20),
             }),
         'advance_amount': fields.function(
             _special_lines,
@@ -89,11 +89,11 @@ class account_invoice(osv.osv):
             store={
                 'account.invoice': (
                     lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20
-                    ),
+                ),
                 'account.invoice.line': (_get_invoice_line, [
                     'price_unit', 'invoice_line_tax_id', 'quantity',
                     'discount', 'invoice_id', 'product_id'
-                    ], 20),
+                ], 20),
             }),
         'delivery_amount': fields.function(
             _special_lines,
@@ -104,11 +104,11 @@ class account_invoice(osv.osv):
             store={
                 'account.invoice': (
                     lambda self, cr, uid, ids, c={}: ids, ['invoice_line'], 20
-                    ),
+                ),
                 'account.invoice.line': (_get_invoice_line, [
                     'price_unit', 'invoice_line_tax_id', 'quantity',
                     'discount', 'invoice_id', 'product_id'
-                    ], 20),
+                ], 20),
             }),
     }
 

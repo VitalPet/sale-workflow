@@ -76,7 +76,7 @@ class sale_order_line(orm.Model):
 
         vals = {}
         if product_id:
-            if sale_flow == 'direct_delivery':
+            if sale_flow in ('direct_delivery', 'direct_invoice_and_delivery'):
                 vals['type'] = 'make_to_order'
             else:
                 product = self.pool['product.product'].browse(cr, uid,
@@ -219,7 +219,7 @@ class procurement_order(orm.Model):
             l_id = (
                 procurement.sale_order_line_id.id
                 if procurement.sale_order_line_id else False
-                )
+            )
             line_vals.update({'sale_order_line_id': l_id})
         return super(
             procurement_order, self).create_procurement_purchase_order(
