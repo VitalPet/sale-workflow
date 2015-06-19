@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 #    Author: Alexandre Fayolle, Leonardo Pistone
-#    Copyright 2014 Camptocamp SA
+#    Copyright 2014-2015 Camptocamp SA
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -21,46 +21,22 @@
     'name': "Sale Quotation Sourcing",
 
     'summary': "manual sourcing of sale quotations",
-    'description': """
-    This module implements manual sourcing of sale order lines from purchase
-    order lines.
 
-    Instead of having the confirmation of a SO generate procurements which in
-    turn may generate a PO, we invert the process: in order to generate a quote
-    for a customer, we ask quotes to different suppliers.
-
-    Once the sale quotation is accepted by the customer and the user confirms
-    it, a wizard is presented to choose which PO to use to source the SO lines.
-
-    The process should mimic closely the way that Odoo handles a MTO, buy
-    order. The only difference is that the PO is chosen manually and not
-    automatically generated. The end result should be the same.
-
-    To show that, two test cases are provided that show the standard process
-    and the manually sourced one.
-
-    The drop shipping case is handled as well, with a warning to check if the
-    destination locations of the procurement and the sourced PO are
-    consistent. Since the stock_dropshipping module contains little more than
-    preconfigured Routes, Rules, and Picking Types, we do not depend
-    on it but we are fully compatible. The Routes and Rules are recreated in
-    the tests in order to avoid requiring stock_dropshipping in production.
-
-    Note: the package nose is required to run the tests. It is not noted in the
-    external dependencies since it is not required in production.
-
-    """,
-
-    'author': "Camptocamp",
+    'author': "Camptocamp,Odoo Community Association (OCA)",
     'website': "http://www.camptocamp.com",
 
     'category': 'Sales',
-    'version': '0.1',
+    'version': '0.3.1',
 
-    'depends': ['sale_stock', 'purchase'],
+    'depends': ['sale_stock',
+                'purchase',
+                'stock_dropshipping',
+                'sale_exceptions',
+                'sale_procurement_group_by_line'],
     'data': ['views/sale_order_sourcing.xml',
              'views/sale_order.xml',
              'security/group.xml',
+             'data/exceptions.xml',
              ],
     'test': [
         'test/setup_user.yml',

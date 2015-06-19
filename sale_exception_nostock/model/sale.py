@@ -120,13 +120,28 @@ class SaleOrderLine(models.Model):
     @api.multi
     def _is_make_to_stock(self):
         """Predict whether a make to stock rule will be chosen"""
-        return self._predict_procure_method == 'make_to_stock'
+        return self._predict_procure_method() == 'make_to_stock'
 
     @api.multi
     def _predict_procure_method(self):
         """Predict the procurement method that will be chosen"""
         rules = self._predict_rules()
         return rules[0].procure_method
+
+    @api.multi
+    def _should_skip_stock_checks(self):
+        self.ensure_one()
+
+        if (
+            self.product_id and
+            self.product_id.type == 'product' and
+            self._is_make_to_stock() and
+            self._get_line_location() and
+            self._get_line_location().usage == 'internal'
+        ):
+            return False
+        else:
+            return True
 
     @api.multi
     def can_command_at_delivery_date(self):
@@ -141,15 +156,11 @@ class SaleOrderLine(models.Model):
 
         """
         self.ensure_one()
-        if not self.product_id and not self._is_make_to_stock():
+        if self._should_skip_stock_checks():
             return True
         delivery_date = self._compute_line_delivery_date()[0]
         delivery_date = fields.Datetime.to_string(delivery_date)
         location = self._get_line_location()
-
-        if location.usage != 'internal':
-            # for example, in the case of drop shipping, we skip the check
-            return True
 
         assert location, _("No rules specifies a location"
                            " for this sale order line")
@@ -158,6 +169,13 @@ class SaleOrderLine(models.Model):
             'compute_child': True,
             'location': location.id,
             }
+
+        try:
+            ctx['owner_id'] = self.stock_owner_id.id
+        except AttributeError:
+            # module sale_owner_stock_sourcing not installed, fine
+            pass
+
         # Virtual qty is made on all childs of chosen location
         prod_for_virtual_qty = (self.product_id
                                 .with_context(ctx)
@@ -209,7 +227,7 @@ class SaleOrderLine(models.Model):
         :return: True if future order are affected by current command line
         """
         self.ensure_one()
-        if not self.product_id and not self._is_make_to_stock():
+        if self._should_skip_stock_checks():
             return False
         delivery_date = self._compute_line_delivery_date()[0]
         delivery_date = fields.Datetime.to_string(delivery_date)
@@ -217,14 +235,17 @@ class SaleOrderLine(models.Model):
         assert location, _("No rules specifies a location"
                            " for this sale order line")
 
-        if location.usage != 'internal':
-            # for example, in the case of drop shipping, we skip the check
-            return True
-
         ctx = {
             'compute_child': True,
             'location_id': location.id,
             }
+
+        try:
+            ctx['owner_id'] = self.stock_owner_id.id
+        except AttributeError:
+            # module sale_owner_stock_sourcing not installed, fine
+            pass
+
         # Virtual qty is made on all childs of chosen location
         dates = self._get_affected_dates(location.id, self.product_id.id,
                                          delivery_date)
